@@ -1,0 +1,40 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 800px;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.list-group-item {
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-danger {
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    transform: scale(1.05);
+}
+
+#statusMessage {
+    transition: opacity 0.3s;
+}
+
+.alert:not(.d-none) {
+    display: block !important;
+}
+
+.task-completed {
+    text-decoration: line-through;
+    color: #6c757d;
+} 
