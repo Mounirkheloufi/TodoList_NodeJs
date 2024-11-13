@@ -37,10 +37,15 @@ async function loadTasks() {
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
             li.innerHTML = `
-                <span>${escapeHtml(task.text)}</span>
-                <button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">
-                    <i class="fas fa-trash"></i> Supprimer
-                </button>
+                <span class="task-text">${escapeHtml(task.text)}</span>
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm me-2" onclick="editTask(${task.id}, '${escapeHtml(task.text)}')">
+                        <i class="fas fa-edit"></i> Modifier
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </div>
             `;
             taskList.appendChild(li);
         });
@@ -136,4 +141,75 @@ async function deleteTask(id) {
 
 // Charger les tâches au démarrage
 document.addEventListener('DOMContentLoaded', loadTasks);
+  
+// Ajouter ces nouvelles fonctions pour la modification :
+function editTask(id, currentText) {
+    const li = event.target.closest('li');
+    const taskSpan = li.querySelector('.task-text');
+    const btnGroup = li.querySelector('.btn-group');
+
+    // Créer le formulaire d'édition
+    const editForm = document.createElement('form');
+    editForm.className = 'd-flex w-100';
+    editForm.innerHTML = `
+        <input type="text" class="form-control me-2" value="${currentText}">
+        <button type="submit" class="btn btn-success btn-sm me-2">
+            <i class="fas fa-save"></i> Enregistrer
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit(${id}, '${currentText}')">
+            <i class="fas fa-times"></i> Annuler
+        </button>
+    `;
+
+    // Cacher le texte et les boutons originaux
+    taskSpan.style.display = 'none';
+    btnGroup.style.display = 'none';
+
+    // Ajouter le formulaire
+    li.insertBefore(editForm, btnGroup);
+
+    // Focus sur l'input
+    const input = editForm.querySelector('input');
+    input.focus();
+    input.select();
+
+    // Gérer la soumission du formulaire
+    editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newText = input.value.trim();
+
+        if (newText === '') {
+            showStatus('Le texte de la tâche ne peut pas être vide', 'warning');
+            return;
+        }
+
+        try {
+            showStatus('Modification de la tâche...', 'info');
+            const response = await fetch(`/tasks/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: newText })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+
+            await loadTasks();
+            showStatus('Tâche modifiée avec succès!', 'success');
+            
+            setTimeout(() => {
+                showStatus('');
+            }, 2000);
+        } catch (error) {
+            console.error('Erreur lors de la modification de la tâche:', error);
+            showStatus('Erreur lors de la modification de la tâche', 'danger');
+        }
+    });
+}
+
+function cancelEdit(id, originalText) {
+    // Recharger la liste pour annuler l'édition
+    loadTasks();
+}
   

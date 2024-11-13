@@ -81,6 +81,35 @@ app.delete('/tasks/:id', async (req, res) => {
     }
 });
 
+app.put('/tasks/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { text } = req.body;
+        
+        if (!text || text.trim() === '') {
+            return res.status(400).json({ error: 'Le texte de la tâche est requis' });
+        }
+
+        let tasks = await readTasks();
+        const taskIndex = tasks.findIndex(task => task.id === id);
+        
+        if (taskIndex === -1) {
+            return res.status(404).json({ error: 'Tâche non trouvée' });
+        }
+
+        tasks[taskIndex] = {
+            ...tasks[taskIndex],
+            text: text.trim(),
+            updatedAt: new Date().toISOString()
+        };
+
+        await writeTasks(tasks);
+        res.json(tasks[taskIndex]);
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors de la modification de la tâche' });
+    }
+});
+
 // Initialisation et démarrage du serveur
 async function startServer() {
     await ensureDataDirectory();
